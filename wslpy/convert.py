@@ -4,7 +4,7 @@ This is the class that helps convert between 3 types of path used widely in WSL.
 """
 import re
 from enum import Enum
-
+from .exceptions import *
 
 class PathConvType(Enum):
     """Types for Path Conversions
@@ -48,7 +48,7 @@ def __DWin2Lin__(path):
     return path
 
 
-def to(input, toType=PathConvType.AUTO):
+def to(input: str, toType=PathConvType.AUTO):
     """
     Convert between 3 types of path used widely in WSL.
 
@@ -78,7 +78,9 @@ def to(input, toType=PathConvType.AUTO):
         elif toType == PathConvType.WINDOUBLE:
             return __Win2Dwin__(__Lin2Win__(input))
         else:
-            raise ValueError("ERROR: Invalid Conversion Type "+toType)
+            raise INVALID_CONVERSION_TYPE(
+                "ERROR: Invalid Conversion Type %s" % str(toType)
+                )
     elif re.match(r'[A-Za-z]:\\\\', input) is not None:  # Windows Path /w Double Dashline
         if toType == PathConvType.AUTO:
             return __DWin2Lin__(input)
@@ -89,7 +91,9 @@ def to(input, toType=PathConvType.AUTO):
         elif toType == PathConvType.WINDOUBLE:
             return input
         else:
-            raise ValueError("ERROR: Invalid Conversion Type "+toType)
+            raise INVALID_CONVERSION_TYPE(
+                "ERROR: Invalid Conversion Type %s" % str(toType)
+                )
     elif re.match(r'[A-Za-z]:', input) is not None:  # Windows Path
         if toType == PathConvType.AUTO:
             return __DWin2Lin__(__Win2Dwin__(input))
@@ -100,7 +104,9 @@ def to(input, toType=PathConvType.AUTO):
         elif toType == PathConvType.WINDOUBLE:
             return __Win2Dwin__(input)
         else:
-            raise ValueError("Invalid Conversion Type "+toType)
+            raise INVALID_CONVERSION_TYPE(
+                "ERROR: Invalid Conversion Type %s" % str(toType)
+                )
     else:
         raise ValueError("Invalid Path "+input)
 
