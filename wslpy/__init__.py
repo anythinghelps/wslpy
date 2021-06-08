@@ -1,20 +1,19 @@
+"""WSLpy module"""
+
+import abc
 import typing
 import os.path
+
 import wslpy.convert as wsl_convert
 import wslpy.exec as wsl_exec
 import wslpy.system as wsl_system
-import abc
 
-# TODO: phase out
-def isWSL():
-    """
-    Check whether the system is WSL.
+if typing.TYPE_CHECKING:
+    from typing import Any, Optional
+    from wslpy.convert import PathConvType
+__all__ = ['WSL']
 
-    Returns
-    -------
-    A boolean value, `True` if it is WSL.
-    """
-    return os.path.exists('/proc/sys/fs/binfmt_misc/WSLInterop')
+isWSL: bool = os.path.exists('/proc/sys/fs/binfmt_misc/WSLInterop')
 
 
 class _WSL_T(type):
@@ -22,9 +21,9 @@ class _WSL_T(type):
     __name__ = 'WSL'
     __qualname__ = 'WSL_T'
 
-    def __instancecheck__(self, instance: typing.Any) -> bool:
+    def __instancecheck__(self, instance: Any) -> bool:
         ''' Check whether the instance is `WSL`. '''
-        return os.path.exists('/proc/sys/fs/binfmt_misc/WSLInterop')
+        return isWSL
     
     def __repr__(self):
         return 'WSL'
@@ -36,19 +35,27 @@ class _WSL_T(type):
 class WSL(_WSL_T, object):
     """Generic WSL object"""
     system: wsl_system 
-    # kinda want to label 'wsl_system' -> subsystem of windows [running linux] for better abstraction.
+    # Draft -- implictly cast objects by their use case behaviour
+    # TODO 'wsl_system' -> subsystem of windows [running linux] for better abstraction.
+    # TODO: 'win_system' => Windows || Windows :: Linux -> wsl_system
+    # TODO: 'linux_subsystem' => 'WSL'
+    # TODO: 'linux_system' => POSIX :: Microsoft subsystem := Windows
+    # TODO: 'microsoft_subsystem'(?)
     execution: wsl_exec
     conversion: wsl_convert
 
     # TODO: merge conversion typing over to wsl_module scope; get rid of convert namespace.
     @abc.abstractclassmethod
-    def convert_to(cls, sys_t: typing.Optional[typing.Any['WindowsPath', 'Path', 'PosixPath', str]]) -> wsl_convert.PathLike:
+    def convert_to(cls, syspath_t: Optional[PathConvType]) -> PathConvType:
         ...
-        _ : cls.conversion.PathConvType = cls.conversion.toWSL # AUTO
+        _ : PathConvType = cls.conversion.toWSL # AUTO
         ...
         cls._path = _
         ...
-        return cls._path
+        if cls.__path == cls._path:
+            # if the result is the same return WSL object 
+            return cls
+        return _
 
     @abc.abstractclassmethod
     def execute(cls, *args, **kwargs):
