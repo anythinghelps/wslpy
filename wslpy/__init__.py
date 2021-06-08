@@ -62,4 +62,4 @@ class WSL(_WSL_T, object):
         """ WIP superclass """
         # self._path = '~/'
         # self.__path = ''
-        super().__init__();
+        super().__init__()
