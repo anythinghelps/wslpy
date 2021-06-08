@@ -1,4 +1,3 @@
-from lib2to3.pytree import convert
 import typing
 import os.path
 import wslpy.convert as wsl_convert
